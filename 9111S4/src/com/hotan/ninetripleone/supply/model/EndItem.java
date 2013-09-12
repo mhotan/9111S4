@@ -1,6 +1,7 @@
 package com.hotan.ninetripleone.supply.model;
 
 import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
@@ -15,12 +16,9 @@ import javafx.beans.property.StringProperty;
 public class EndItem {
 
     private final StringProperty name, lin, nsn;
-    private StringProperty sn, mos, location;
+    private StringProperty sn, mos, location, cL, pubNum, pubDate;
+    private BooleanProperty hasSN;
     
-    // Boolean reference that labels if this end item
-    // has a serial number.
-    private final BooleanProperty hasSerialNumber;
-
     /**
      * Constructs a bare bones end item.
      * <br> By default there is not items
@@ -45,23 +43,23 @@ public class EndItem {
         this.name = new ReadOnlyStringWrapper(name);
         this.lin = new ReadOnlyStringWrapper(lin);
         this.nsn = new ReadOnlyStringWrapper(nsn);
-        hasSerialNumber = new ReadOnlyBooleanWrapper();
-        hasSerialNumber.bind(snProperty().isNotNull());
-        
         checkRep();
     }
 
     /////////////////////////////////////////////////
     //// Setters
     /////////////////////////////////////////////////
-
-    /**
-     * Sets the serial number for this end item.
-     * 
-     * @param serial Serial number to set 
-     */
-    public void setSn(String serial) {
-        snProperty().set(serial);
+    
+    public void setPubDate(String pubDate) {
+        if (pubDate == null)
+            pubDate = "";
+        pubDateProperty().set(pubDate);
+    }
+    
+    public void setPubNum(String pubNum) {
+        if (pubNum == null)
+            pubNum = "";
+        pubNumProperty().set(pubNum);
     }
     
     public void setMos(MOS mos) {
@@ -76,12 +74,28 @@ public class EndItem {
         locationProperty().set(location);
     }
     
+    public void setSn(String serialNumber) {
+        snProperty().set(serialNumber);
+    }
+    
+    /**
+     * Set the CL number whatever that is.
+     * @param clNum
+     */
+    public void setCL(String clNum) {
+        CLProperty().set(clNum);
+    }
+    
     /////////////////////////////////////////////////
     //// Getters
     /////////////////////////////////////////////////
     
-    public String getSn() {
-        return snProperty().get();
+    public String getPubDate() {
+        return pubDateProperty().get();
+    }
+    
+    public String getPubNum() {
+        return pubNumProperty().get();
     }
     
     public String getMos() {
@@ -104,16 +118,50 @@ public class EndItem {
         return nsn.get();
     }
     
-    public boolean getHasSerialNumber() {
-        return hasSerialNumber.get();
+    public String getSn() {
+        return sn.get();
+    }
+    
+    public boolean getHasSN() {
+        return hasSNProperty().get();
+    }
+    
+    public String getCL() {
+        return CLProperty().get();
     }
     
     /////////////////////////////////////////////////
     //// Properties
     /////////////////////////////////////////////////
 
-    public StringProperty snProperty() {
-        if (sn == null)
+    public StringProperty pubDateProperty() {
+        if (pubDate == null) 
+            pubDate = new SimpleStringProperty("");
+        return pubDate;
+    }
+    
+    public StringProperty pubNumProperty() {
+        if (pubNum == null) 
+            pubNum = new SimpleStringProperty("");
+        return pubNum;
+    }
+    
+    public StringProperty CLProperty() {
+        if (cL == null) 
+            cL = new SimpleStringProperty("");
+        return cL;
+    }
+    
+    public ReadOnlyBooleanProperty hasSNProperty() {
+        if (hasSN == null) {
+            hasSN = new ReadOnlyBooleanWrapper();
+            hasSN.bind(snProperty().isNotNull());
+        }
+        return hasSN;
+    }
+    
+    public StringProperty snProperty(){
+        if (sn == null) 
             sn = new SimpleStringProperty(null);
         return sn;
     }
@@ -142,10 +190,6 @@ public class EndItem {
         return nsn;
     }
     
-    public BooleanProperty hasSerialNumberProperty() {
-        return hasSerialNumber;
-    }
-    
     @Override
     public boolean equals(Object o) {
         if (o == null) return false;
@@ -164,10 +208,18 @@ public class EndItem {
                 + 7 * nsnProperty().hashCode() + 11 * snProperty().hashCode();
     }
     
+    @Override
+    public String toString() {
+        String name = "EndItem " + getName() + " NSN:" + getNSN() + " LIN:" + getLin();
+        if (getHasSN()) {
+            name += " SN:" + getSn(); 
+        }
+        return name;
+    }
+    
     private void checkRep() {
         assert name != null;
         assert lin != null;
         assert nsn != null;
-        assert hasSerialNumber != null;
     }
 }

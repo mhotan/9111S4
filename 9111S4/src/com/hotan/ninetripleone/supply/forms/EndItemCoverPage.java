@@ -1,7 +1,7 @@
 package com.hotan.ninetripleone.supply.forms;
 
-import java.io.File;
 import java.io.IOException;
+import java.util.List;
 import java.util.logging.Logger;
 
 import org.apache.poi.hssf.usermodel.HSSFCell;
@@ -9,6 +9,8 @@ import org.apache.poi.hssf.usermodel.HSSFRow;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 
+import com.hotan.ninetripleone.supply.model.EndItem;
+import com.hotan.ninetripleone.supply.model.EndItemGroup;
 import com.hotan.ninetripleone.supply.model.MOS;
 import com.hotan.ninetripleone.supply.util.POITemplateLoader;
 
@@ -62,8 +64,21 @@ public class EndItemCoverPage {
         checkRep();
     }
 
+    /**
+     * 
+     * 
+     * @param item
+     */
+    public void addEndItem(EndItemGroup items) {
+        setName(items.getName());
+        setLIN(items.getLIN());
+        List<EndItem> itemLst = items.getItems();
+        setQuantity(itemLst.size());
+        setNSN(items.getNSN());
+    }
 
     public void setName(String name) {
+        if (name == null) return;
         // Get the cell for the name of the endpoint.
         HSSFRow row = mSheet.getRow(0);
         HSSFCell cell = row.getCell(1);
@@ -77,30 +92,45 @@ public class EndItemCoverPage {
     }
     
     public void setLIN(String lin) {
+        if (lin == null) return;
+        
         HSSFRow row = mSheet.getRow(1);
         HSSFCell cell = row.getCell(1);
         cell.setCellValue(lin);
     }
 
     public void setNSN(String nsn) {
+        if (nsn == null) return;
+        
         HSSFRow row = mSheet.getRow(2);
         HSSFCell cell = row.getCell(1);
         cell.setCellValue(nsn);
     }
     
-    public void setMos(MOS mos) {
+    public void setMOS(MOS mos) {
+        if (mos == null) return;
+        setMos(mos.toString());
+    } 
+    
+    private void setMos(String mos) {
+        if (mos == null) return;
+        
         HSSFRow row = mSheet.getRow(1);
         HSSFCell cell = row.getCell(5);
         cell.setCellValue(mos.toString());
     }
     
     public void setLocation(String location) {
+        if (location == null) return;
+        
         HSSFRow row = mSheet.getRow(2);
         HSSFCell cell = row.getCell(5);
         cell.setCellValue(location);
     }
 
     public void addSerialNumber(String serialNumber) {
+        if (serialNumber == null) return;
+        
         mCurrentCell.setCellValue(serialNumber);
         incrementSerialCell();
     }
