@@ -31,6 +31,23 @@ public class POIUtil {
             this.col = col;
         }
         
+        public IndexPair indexOnRight() {
+            return new IndexPair(row, col + 1);
+        }
+        
+        public IndexPair indexOnLeft() {
+            if (col == 0) return null;
+            return new IndexPair(row, col - 1);
+        }
+        
+        public IndexPair indexOnTop() {
+            if (row == 0) return null;
+            return new IndexPair(row - 1, col);
+        }
+        
+        public IndexPair indexOnBottom() {
+            return new IndexPair(row + 1, col);
+        }
     }
     
     /**
@@ -55,6 +72,19 @@ public class POIUtil {
         HSSFRow row = sheet.getRow(rowInd);
         if (row == null) return null;
         return row.getCell(colInd);
+    }
+    
+    /**
+     * Given an HSSFCell check if there is a String value associated with it.
+     * 
+     * @param cell Cell to check string value for.
+     * @return Whether there is a String value in this cell.
+     */
+    public static boolean hasStringValue(HSSFCell cell) {
+        if (cell == null) return false;
+        String cellVal = cell.getStringCellValue();
+        if (cellVal == null) return false;
+        return !cellVal.trim().isEmpty();
     }
     
 }
