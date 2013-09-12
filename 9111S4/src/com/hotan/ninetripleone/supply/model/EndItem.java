@@ -7,6 +7,8 @@ import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 
 /**
  * Class that represents a single end item.
@@ -14,10 +16,13 @@ import javafx.beans.property.StringProperty;
  * @author Michael Hotan, michael.hotan@gmail.com
  */
 public class EndItem {
-
+    
     private final StringProperty name, lin, nsn;
     private StringProperty sn, mos, location, cL, pubNum, pubDate;
     private BooleanProperty hasSN;
+    
+    private final ObservableList<EndItemComponent> mEndItemComps;
+    private final ObservableList<EndItemBasicIssueComponent> mEndItemBII;
     
     /**
      * Constructs a bare bones end item.
@@ -43,22 +48,54 @@ public class EndItem {
         this.name = new ReadOnlyStringWrapper(name);
         this.lin = new ReadOnlyStringWrapper(lin);
         this.nsn = new ReadOnlyStringWrapper(nsn);
+        
+        mEndItemComps = FXCollections.observableArrayList();
+        mEndItemBII = FXCollections.observableArrayList();
+        
         checkRep();
     }
+    
 
     /////////////////////////////////////////////////
     //// Setters
     /////////////////////////////////////////////////
     
+    /**
+     * Combines the all the values as necessary from the argument item
+     * to this item.  This allows us to share the maximum amount of data possible
+     * between repeating items.
+     * 
+     * @param item Item to combine with
+     */
+    public void combine(EndItem item) {
+        if (this == item) return; // Can't combine with self
+        if (!equals(item)) return;
+        
+        updateStringProp(pubDate, item.pubDate);
+        updateStringProp(pubNum, item.pubNum);
+        updateStringProp(mos, item.mos);
+        updateStringProp(location, item.location);
+        updateStringProp(cL, item.cL);
+        
+        if (mEndItemComps.isEmpty()) {
+            mEndItemComps.addAll(item.mEndItemComps);
+        }
+        if (mEndItemBII.isEmpty()) {
+            mEndItemBII.addAll(item.mEndItemBII);
+        }
+    }
+    
+    private static void updateStringProp(StringProperty destination, StringProperty source) {
+        if (destination.isNotNull().get() && !destination.get().isEmpty()) return;
+        if (source.isNull().get() || source.get().isEmpty()) return;
+        destination.set(source.get());
+    }
+    
     public void setPubDate(String pubDate) {
-        if (pubDate == null)
-            pubDate = "";
         pubDateProperty().set(pubDate);
     }
     
     public void setPubNum(String pubNum) {
-        if (pubNum == null)
-            pubNum = "";
         pubNumProperty().set(pubNum);
     }
     
@@ -84,6 +121,29 @@ public class EndItem {
      */
     public void setCL(String clNum) {
         CLProperty().set(clNum);
+    }
+    
+    
+    public void addCOEI(EndItemComponent component) {
+        if (component == null || mEndItemComps.contains(component)) {
+            return;
+        }
+        mEndItemComps.add(component);
+    }
+    
+    public void addBII(EndItemBasicIssueComponent component) {
+        if (component == null || mEndItemBII.contains(component)) {
+            return;
+        }
+        mEndItemBII.add(component);
+    }
+    
+    public void removeCOEI(EndItemComponent component) {
+        mEndItemComps.remove(component);
+    }
+    
+    public void removeBII(EndItemBasicIssueComponent component) {
+        mEndItemBII.remove(component);
     }
     
     /////////////////////////////////////////////////
@@ -128,6 +188,14 @@ public class EndItem {
     
     public String getCL() {
         return CLProperty().get();
+    }
+    
+    public ObservableList<EndItemComponent> getCOEI() {
+        return FXCollections.observableArrayList(mEndItemComps);
+    }
+    
+    public ObservableList<EndItemBasicIssueComponent> getBII() {
+        return FXCollections.observableArrayList(mEndItemBII);
     }
     
     /////////////////////////////////////////////////
@@ -195,8 +263,7 @@ public class EndItem {
         if (o == null) return false;
         if (!o.getClass().equals(getClass())) return false;
         EndItem item = (EndItem) o;
-        return nameProperty().isEqualTo(item.nameProperty()).get() 
-                && linProperty().isEqualTo(item.linProperty()).get()
+        return linProperty().isEqualTo(item.linProperty()).get()
                 && nsnProperty().isEqualTo(item.nsnProperty()).get()
                 && snProperty().isEqualTo(item.snProperty()).get();
     }
@@ -204,7 +271,7 @@ public class EndItem {
     @Override
     public int hashCode() {
         // Use the properties to generate hascode
-        return nameProperty().hashCode() + 3 * linProperty().hashCode() 
+        return 3 * linProperty().hashCode() 
                 + 7 * nsnProperty().hashCode() + 11 * snProperty().hashCode();
     }
     

@@ -20,7 +20,7 @@ import com.hotan.ninetripleone.supply.util.POILoader;
 
 public class UnitHRTest {
 
-    private static final int NUM_ITEMS = 50;
+    private static final int NUM_ITEMS = 49;
     
     private static UnitLevelHandReceipt mValidHR;
     
@@ -56,12 +56,12 @@ public class UnitHRTest {
     
     @Test
     public void testFrom() {
-        assertEquals("InCorrect from operator", new Operator("JONATHAN", "TSCHETTER", Rank.MAJ), mValidHR.getFrom());
+        assertEquals("InCorrect from operator", new Operator("JONATHAN", "TSCHETTER", Rank.MAJ), mValidHR.getWhoFrom());
     }
     
     @Test
     public void testTo() {
-        assertEquals("InCorrect from operator", new Operator("JAMES", "MITCHELL", Rank.CPT), mValidHR.getTo());
+        assertEquals("InCorrect from operator", new Operator("JAMES", "MITCHELL", Rank.CPT), mValidHR.getWhoTo());
     }
     
     @Test

@@ -1,6 +1,5 @@
 package com.hotan.ninetripleone.supply.model;
 
-import java.awt.image.IndexColorModel;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -48,7 +47,7 @@ public class ComponentHandReceipt {
 
     private final ObservableList<EndItemGroup> mGroups;
 
-    private final Map<String, HSSFSheet> mMap;
+    private final Map<EndItem, HSSFSheet> mMap;
 
     private final Operator mFromIndiv, mToIndiv;
     private final String UIC, DESC;
@@ -64,9 +63,12 @@ public class ComponentHandReceipt {
             throw new NullPointerException(getClass().getSimpleName() + "() Workbook cannot be null");
         mWorkbook = wb;
         mGroups = FXCollections.observableArrayList();
-        mMap = new HashMap<String, HSSFSheet>();
+        mMap = new HashMap<EndItem, HSSFSheet>();
 
         HSSFSheet sheetOne = wb.getSheetAt(0);
+        if (sheetOne == null)
+            throw new FormatException(getClass().getSimpleName() + "() Workbook has no sheets");
+        
         mFromIndiv = getFrom(sheetOne);
         mToIndiv = getTo(sheetOne);
         UIC = getUIC(sheetOne);
@@ -80,11 +82,18 @@ public class ComponentHandReceipt {
                 LOG.warning("Found null sheet for workbook " + mWorkbook + " at index " + i);
                 continue;
             }
-            EndItem item = processSheet(sheet);
-            addEndItem(item);
+            processSheet(sheet);
         }
     }
 
+    public String getUIC() {
+        return UIC;
+    }
+    
+    public String getDESC() {
+        return DESC;
+    }
+    
     /**
      * Adds EndItem group to this hand receipt
      * 
@@ -92,12 +101,33 @@ public class ComponentHandReceipt {
      */
     public void add(EndItemGroup group) {
         if (group == null) return;
-        if (hasEndItemGroup(group.getNSN(), group.getLIN())) return;
+        if (hasGroup(group.getNSN(), group.getLIN())) return;
         mGroups.add(group);
     }
 
-
-
+    /**
+     * @return Who the sheet is signed from
+     */
+    public Operator getWhoFrom() {
+        return mFromIndiv;
+    }
+    
+    /**
+     * @return Who the sheet is signed to.
+     */
+    public Operator getWhoTo() {
+        return mToIndiv;
+    }
+    
+    /**
+     * Returns the EndItems found on this hand receipt.
+     * 
+     * @return Unmodifiable list of groups in the enditem
+     */
+    public ObservableList<EndItemGroup> getGroups() {
+        return FXCollections.unmodifiableObservableList(mGroups);
+    }
+    
     /**
      * Checks if there is an EndItem Group with matcheing nsn and lin.
      * 
@@ -105,7 +135,7 @@ public class ComponentHandReceipt {
      * @param lin Lin number of the EndItem
      * @return Whether or not there exist an EndItem group with the same nsn and lin
      */
-    public boolean hasEndItemGroup(String nsn, String lin) {
+    public boolean hasGroup(String nsn, String lin) {
         return getGroup(nsn, lin) != null;
     }
 
@@ -125,6 +155,15 @@ public class ComponentHandReceipt {
         }
         return null;
     }
+    
+    /**
+     * Returns the corresponding sheet for the EndItem
+     * @param item Processed item.
+     * @return Sheet that represents item.
+     */
+    public HSSFSheet getSheet(EndItem item) {
+        return mMap.get(item);
+    }
 
     /////////////////////////////////////////////////////////////////////
     ////// Private Helper methods
@@ -136,10 +175,11 @@ public class ComponentHandReceipt {
      * @param sheet Sheet to develop.
      * @throws FormatException 
      */
-    private EndItem processSheet(HSSFSheet sheet) throws FormatException {
+    private void processSheet(HSSFSheet sheet) throws FormatException {
         String nsn = getNSN(sheet);
         String lin = getLIN(sheet);
         String serialNum = getSerialNumber(sheet);
+        serialNum = serialNum.isEmpty() ? null: serialNum;
         String name = getName(sheet);
         String pubDate = getPublicationDate(sheet);
         String pubNum = getPublicationNumber(sheet);
@@ -151,7 +191,19 @@ public class ComponentHandReceipt {
         item.setPubDate(pubDate);
         item.setPubNum(pubNum);
         item.setSn(serialNum);
-        return item;
+        
+        List<EndItemComponent> comps = getCOEIs(sheet);
+        for (EndItemComponent comp: comps) {
+            item.addCOEI(comp);
+        }
+        
+        List<EndItemBasicIssueComponent> biiComps = getBII(sheet);
+        for (EndItemBasicIssueComponent comp: biiComps) {
+            item.addBII(comp);
+        }
+        
+        mMap.put(item, sheet);
+        addEndItem(item);
     }
 
     private void addEndItem(EndItem item) {
@@ -172,22 +224,63 @@ public class ComponentHandReceipt {
      * @return list of components
      */
     private static List<EndItemComponent> getCOEIs(HSSFSheet  sheet) {
-        List<EndItemComponent> components = new ArrayList<EndItemComponent>();
+        final List<EndItemComponent> components = new ArrayList<EndItemComponent>();
 
-        // Get the first cell that should hold the label.
+        findAccountableComponents(sheet, COIE_LABEL, COMPONENT_START_LOCATION, new AccountableComponentFound() {
+            
+            @Override
+            public void onFound(String name, String nsn, int authQty) {
+                components.add(new EndItemComponent(name, nsn, authQty));
+            }
+        });
+        
+        return components;
+    }
+    
+    private static List<EndItemBasicIssueComponent> getBII(HSSFSheet sheet) {
+        final List<EndItemBasicIssueComponent> components = new ArrayList<EndItemBasicIssueComponent>();
+        int maxRow = sheet.getLastRowNum();
+        
         HSSFCell label = POIUtil.getCell(sheet, COMPONENT_START_LOCATION);
         if (!POIUtil.hasStringValue(label)) {
             return components;
         }
         
-        //
-        String cellValue = label.getStringCellValue();
-        if (COIE_LABEL.equals(cellValue.trim())) {
-            IndexPair index = COMPONENT_START_LOCATION.indexOnBottom();
+        // Attempt to find the cell with the appropiate label
+        for (int row = COMPONENT_START_LOCATION.row; row <= maxRow; ++row) {
+            
+            // Try to 
+            findAccountableComponents(sheet, BII_LABEL,  new IndexPair(row, COMPONENT_START_LOCATION.col), new AccountableComponentFound() {
+                
+                @Override
+                public void onFound(String name, String nsn, int authQty) {
+                    components.add(new EndItemBasicIssueComponent(name, nsn, authQty));
+                }
+            });
+            
+        }
+        
+        // If we could not find the start cell the just return an empty list.
+        return components;
+    }
+
+    private static void findAccountableComponents(HSSFSheet sheet, String label, IndexPair startLoc, AccountableComponentFound listener) {
+        HSSFCell labelCell = POIUtil.getCell(sheet, startLoc);
+        if (!POIUtil.hasStringValue(labelCell)) {
+            return;
+        }
+        
+        // If the label of the cell does not eaual the defined COIE label
+        String cellValue = labelCell.getStringCellValue();
+        if (label.equals(cellValue.trim())) {
+            
+            // Iterate through all the following rows to 
+            // get all the components.
+            IndexPair index = startLoc.indexOnBottom();
             HSSFCell nextCell = POIUtil.getCell(sheet, index);
             
             // All valid rows are placed below 
-            while (!(nextCell == null || nextCell.getStringCellValue() == null || nextCell.getStringCellValue().isEmpty())) {
+            while (POIUtil.hasStringValue(nextCell)) {
                 
                 // Extract the name of the row.
                 String name = nextCell.getStringCellValue();
@@ -199,25 +292,21 @@ public class ComponentHandReceipt {
                 } catch (NumberFormatException e) {
                     LOG.warning("Unable to extract quantity for component " + name);
                 }
-                components.add(new EndItemComponent(name, nsn, authQty));
+                listener.onFound(name, nsn, authQty);
                 
                 // Iterate through the 
                 index = index.indexOnBottom();
                 nextCell = POIUtil.getCell(sheet, index);
             }
         }
-
-        return components;
     }
     
-    private static List<EndItemBasicIssueComponent> getBII(HSSFSheet sheet) {
-        List<EndItemBasicIssueComponent> components = new ArrayList<EndItemBasicIssueComponent>();
-        int maxRow = sheet.getLastRowNum();
+    private interface AccountableComponentFound {
         
+        public void onFound(String name, String nsn, int authQty);
         
-        return components;
     }
-
+    
     /**
      * Extract the UIC from the sheet
      * 
@@ -314,7 +403,9 @@ public class ComponentHandReceipt {
                     + " Unable to find cell that describes who subcomponent is to");
         }
         String val = cell.getStringCellValue().trim();
-        return val.replace("ITEM DESC:", "").replace(" ", "");
+        String name = val.replace("ITEM DESC:", "").trim();
+        
+        return name;
     }
 
     private static String getPublicationNumber(HSSFSheet sheet) throws FormatException {

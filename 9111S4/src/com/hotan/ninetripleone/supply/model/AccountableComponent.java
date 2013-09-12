@@ -66,4 +66,22 @@ public abstract class AccountableComponent {
     public ReadOnlyIntegerProperty authQtyProperty() {
         return authQty;
     }
+    
+    @Override
+    public boolean equals(Object o) {
+        if (o == null) return false;
+        if (!o.getClass().equals(getClass())) return false;
+        AccountableComponent a = (AccountableComponent) o;
+        return name.isEqualTo(a.name).get() && NSN.isEqualTo(a.NSN).get() && authQty.isEqualTo(a.authQty).get();
+    }
+    
+    @Override
+    public int hashCode() {
+        return name.hashCode() + 3 * NSN.hashCode() + 7 * authQty.hashCode();
+    }
+    
+    @Override
+    public String toString() {
+        return name.get() + " NSN: " + NSN.get() + " Qty: " + authQty.get();
+    }
 }

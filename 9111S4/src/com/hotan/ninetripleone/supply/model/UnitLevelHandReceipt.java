@@ -13,8 +13,6 @@ import org.apache.poi.hssf.usermodel.HSSFCell;
 import org.apache.poi.hssf.usermodel.HSSFRow;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
-import org.apache.poi.hssf.util.HSSFColor;
-import org.apache.poi.ss.usermodel.IndexedColors;
 
 public class UnitLevelHandReceipt {
 
@@ -31,7 +29,7 @@ public class UnitLevelHandReceipt {
     private final ObservableList<EndItemGroup> mGroups;
 
     /**
-     * Creates a Unit level handreceipt from a XLS workbook.
+     * Creates a Unit level hand receipt from a XLS workbook.
      * 
      * @param wb Workbook to use to build this UnitLevelHandReceipt
      */
@@ -65,11 +63,11 @@ public class UnitLevelHandReceipt {
         mToIndiv = findTo(mWorkbook);
     }
 
-    public Operator getFrom() {
+    public Operator getWhoFrom() {
         return mFromIndiv;
     }
     
-    public Operator getTo() {
+    public Operator getWhoTo() {
         return mToIndiv;
     }
 
@@ -96,6 +94,39 @@ public class UnitLevelHandReceipt {
      */
     public ObservableList<EndItemGroup> getGroups() {
         return FXCollections.unmodifiableObservableList(mGroups);
+    }
+    
+    public void addGroup(EndItemGroup group) {
+        if (group == null) return;
+        
+    }
+    
+    /**
+     * Checks if there is an EndItem Group with matcheing nsn and lin.
+     * 
+     * @param nsn NSN of the EndItem
+     * @param lin Lin number of the EndItem
+     * @return Whether or not there exist an EndItem group with the same nsn and lin
+     */
+    public boolean hasGroup(String nsn, String lin) {
+        return getGroup(nsn, lin) != null;
+    }
+    
+    /**
+     * Returns EndItem group that has the same nsn and lin number. 
+     * 
+     * @param nsn NSN to find.
+     * @param lin LIN to find.
+     * @return EndItemGroup that represents the the nsn and lin inputted, or null if non are found.
+     */
+    public EndItemGroup getGroup(String nsn, String lin) {
+        if (nsn == null || lin == null) return null;
+        for (EndItemGroup group: mGroups) {
+            if (group.getNSN().equals(nsn) && group.getLIN().equals(lin)) {
+                return group;
+            }
+        }
+        return null;
     }
     
     /**
@@ -157,11 +188,16 @@ public class UnitLevelHandReceipt {
             }
         }
         
-        // Set the quantity that is found on the hand receipt. 
-        group.setQty(qty);
-        
-        // Update the list of groups.
-        mGroups.add(group);
+        // Check if the hand receipt had an error and printed the same EndItemGroup
+        // on two seperate header lines.
+        int currGroupInd = mGroups.indexOf(group);
+        if (currGroupInd != -1) {
+            EndItemGroup curGroup = mGroups.get(currGroupInd);
+            curGroup.combine(group);
+        } else {
+            // Update the list of groups.
+            mGroups.add(group);
+        }
     }
 
     private static final int SERIAL_NUMBER_ROW_POSITION_1 = 0;

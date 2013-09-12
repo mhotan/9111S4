@@ -1,6 +1,7 @@
 package com.hotan.ninetripleone.supply.model;
 
 import java.util.Comparator;
+import java.util.List;
 
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
@@ -12,8 +13,6 @@ import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-
-import com.hotan.ninetripleone.supply.model.EndItem;
 
 /**
  * Class that comprises a group of EndItems
@@ -35,8 +34,6 @@ public class EndItemGroup {
      */
     private final StringProperty name, lIN, nSN;
     
-    private IntegerProperty qty;
-
     /**
      * Constructs EndItemGroup based off predefined properties
      * 
@@ -107,25 +104,69 @@ public class EndItemGroup {
         return mItems;
     }
     
-    public int getQty() {
-        return qtyProperty().get();
+    public int size() {
+        return mItems.size();
+    }
+    
+    /**
+     * Combines argument group into this.
+     * <br>If the LIN and NSN do not match then nothing is done.
+     * <br>Otherwise all the end items will attempted to be added.
+     * @param group Group to combine into
+     */
+    public void combine(EndItemGroup group) {
+        if (this == group) return; // Can't combine with self
+        if (!this.equals(group)) return;
+        
+        // Update the name with the name of the second group
+        if (getName().isEmpty() && !group.getName().isEmpty()) 
+            name.set(group.getName());
+        
+        List<EndItem> items = group.getItems();
+        for (EndItem item: items) {
+            add(item);
+        }
     }
     
     ///////////////////////////////////////////////////////////////////////////////////
     /////// Setters
     ///////////////////////////////////////////////////////////////////////////////////
     
+    public boolean contains(EndItem item) {
+        return mItems.contains(item);
+    }
+    
     public void add(EndItem item) {
-        if (item == null || mItems.contains(item)) {
+        if (item == null) {
             return;
         }
-        if (!(item.getName().equals(getName()) 
-                && item.getLin().equals(getLIN()) 
-                && item.getNSN().equals(getNSN()))) {
+        if (!(item.getLin().equals(getLIN()) 
+                && item.getNSN().equals(getNSN()))
+                && item.getHasSN() == getSerialized()) {
             throw new IllegalArgumentException("Illegal EndItem added " + item);
         }
         
-        mItems.add(item);
+        // If we are serialized then just add the element
+        if (getSerialized()) {
+            EndItem curItem = null;
+            
+            // Check if we have the serial number already
+            for (EndItem i: mItems) {
+                if (i.getSn().equals(item.getSn())) {
+                    curItem = i;
+                    break;
+                }
+            }
+            
+            // If we don't have the serial number then add it
+            if (curItem == null) {
+                mItems.add(item);
+            } else { // Combine the current EndItem to have the most up to date information
+                curItem.combine(item);
+            }
+        } else { // If it is not serialized then just add it.
+            mItems.add(item);
+        }
     }
     
     public void sortBy(ORDER_BY order) {
@@ -133,20 +174,10 @@ public class EndItemGroup {
         FXCollections.sort(mItems, order.getComparator());
     }
     
-    public void setQty(int qty) {
-        qtyProperty().set(qty);
-    }
-    
     ///////////////////////////////////////////////////////////////////////////////////
     /////// Properties
     ///////////////////////////////////////////////////////////////////////////////////
 
-    public IntegerProperty qtyProperty() {
-        if (qty == null)
-            qty = new SimpleIntegerProperty(0);
-        return qty;
-    }
-    
     public ReadOnlyBooleanProperty serializedProperty() {
         return this.serialized;
     }
@@ -220,15 +251,14 @@ public class EndItemGroup {
         if (o == null) return false;
         if (!o.getClass().equals(getClass())) return false;
         EndItemGroup item = (EndItemGroup) o;
-        return nameProperty().isEqualTo(item.nameProperty()).get() 
-                && lINProperty().isEqualTo(item.lINProperty()).get()
-                && nSNProperty().isEqualTo(item.nSNProperty()).get();
+        return lINProperty().isEqualTo(item.lINProperty()).get()
+                && nSNProperty().isEqualTo(item.nSNProperty()).get()  && getSerialized() == item.getSerialized();
     }
     
     @Override
     public int hashCode() {
         // Use the properties to generate hascode
-        return nameProperty().hashCode() + 3 * lINProperty().hashCode() 
+        return 17 + 3 * lINProperty().hashCode() 
                 + 7 * nSNProperty().hashCode();
     }
     
