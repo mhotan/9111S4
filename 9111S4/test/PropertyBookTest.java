@@ -6,9 +6,9 @@ import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import com.hotan.ninetripleone.supply.model.ComponentHandReceipt;
+import com.hotan.ninetripleone.supply.forms.ComponentHandReceipt;
+import com.hotan.ninetripleone.supply.forms.UnitLevelHandReceipt;
 import com.hotan.ninetripleone.supply.model.PropertyBook;
-import com.hotan.ninetripleone.supply.model.UnitLevelHandReceipt;
 import com.hotan.ninetripleone.supply.util.FormatException;
 import com.hotan.ninetripleone.supply.util.POILoader;
 

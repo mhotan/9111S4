@@ -10,11 +10,11 @@ import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import com.hotan.ninetripleone.supply.forms.UnitLevelHandReceipt;
 import com.hotan.ninetripleone.supply.model.EndItem;
 import com.hotan.ninetripleone.supply.model.EndItemGroup;
 import com.hotan.ninetripleone.supply.model.Operator;
 import com.hotan.ninetripleone.supply.model.Rank;
-import com.hotan.ninetripleone.supply.model.UnitLevelHandReceipt;
 import com.hotan.ninetripleone.supply.util.POILoader;
 
 

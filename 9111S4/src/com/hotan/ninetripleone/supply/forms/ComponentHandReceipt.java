@@ -1,4 +1,4 @@
-package com.hotan.ninetripleone.supply.model;
+package com.hotan.ninetripleone.supply.forms;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -13,6 +13,12 @@ import org.apache.poi.hssf.usermodel.HSSFCell;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 
+import com.hotan.ninetripleone.supply.model.EndItem;
+import com.hotan.ninetripleone.supply.model.EndItemBasicIssueComponent;
+import com.hotan.ninetripleone.supply.model.EndItemComponent;
+import com.hotan.ninetripleone.supply.model.EndItemGroup;
+import com.hotan.ninetripleone.supply.model.Operator;
+import com.hotan.ninetripleone.supply.model.Rank;
 import com.hotan.ninetripleone.supply.util.FormatException;
 import com.hotan.ninetripleone.supply.util.POIUtil;
 import com.hotan.ninetripleone.supply.util.POIUtil.IndexPair;
@@ -28,16 +34,16 @@ public class ComponentHandReceipt {
     private static final Logger LOG = Logger.getLogger(ComponentHandReceipt.class.getSimpleName());
 
     // Index locations for certain aspects of the sheet.
-    private static final IndexPair UICDESC_LOCATION = new IndexPair(2,0);
-    private static final IndexPair FROM_LOCATION = new IndexPair(3,0);
-    private static final IndexPair TO_LOCATION = new IndexPair(3,6);
-    private static final IndexPair NSN_LOCATION = new IndexPair(5, 0);
-    private static final IndexPair LIN_LOCATION = new IndexPair(6, 0);
-    private static final IndexPair SN_LOCATION = new IndexPair(7, 0);
-    private static final IndexPair NAME_LOCATION = new IndexPair(5, 2);
-    private static final IndexPair PUBNUM_LOCATION = new IndexPair(6, 2);
-    private static final IndexPair PUBDATE_LOCATION = new IndexPair(6, 6);
-    private static final IndexPair COMPONENT_START_LOCATION = new IndexPair(13, 2);
+    private static final IndexPair UICDESC_LOCATION = IndexPair.valueOf(2,0);
+    private static final IndexPair FROM_LOCATION = IndexPair.valueOf(3,0);
+    private static final IndexPair TO_LOCATION = IndexPair.valueOf(3,6);
+    private static final IndexPair NSN_LOCATION = IndexPair.valueOf(5, 0);
+    private static final IndexPair LIN_LOCATION = IndexPair.valueOf(6, 0);
+    private static final IndexPair SN_LOCATION = IndexPair.valueOf(7, 0);
+    private static final IndexPair NAME_LOCATION = IndexPair.valueOf(5, 2);
+    private static final IndexPair PUBNUM_LOCATION = IndexPair.valueOf(6, 2);
+    private static final IndexPair PUBDATE_LOCATION = IndexPair.valueOf(6, 6);
+    private static final IndexPair COMPONENT_START_LOCATION = IndexPair.valueOf(13, 2);
 
     // Component labels within ComponentHandReceipt
     private static final String COIE_LABEL = "COMPONENTS OF END ITEM (COEI)";
@@ -250,7 +256,7 @@ public class ComponentHandReceipt {
         for (int row = COMPONENT_START_LOCATION.row; row <= maxRow; ++row) {
             
             // Try to 
-            findAccountableComponents(sheet, BII_LABEL,  new IndexPair(row, COMPONENT_START_LOCATION.col), new AccountableComponentFound() {
+            findAccountableComponents(sheet, BII_LABEL,  IndexPair.valueOf(row, COMPONENT_START_LOCATION.col), new AccountableComponentFound() {
                 
                 @Override
                 public void onFound(String name, String nsn, int authQty) {
@@ -285,7 +291,7 @@ public class ComponentHandReceipt {
                 // Extract the name of the row.
                 String name = nextCell.getStringCellValue();
                 String nsn = POIUtil.getCell(sheet, index.indexOnLeft().indexOnLeft()).getStringCellValue();
-                String authQtyStr = POIUtil.getCell(sheet, new IndexPair(index.row, 7)).getStringCellValue();
+                String authQtyStr = POIUtil.getCell(sheet, IndexPair.valueOf(index.row, 7)).getStringCellValue();
                 int authQty = 0;
                 try {
                     authQty = Integer.valueOf(authQtyStr);

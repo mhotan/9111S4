@@ -4,6 +4,9 @@ import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
 
+import com.hotan.ninetripleone.supply.forms.ComponentHandReceipt;
+import com.hotan.ninetripleone.supply.forms.UnitLevelHandReceipt;
+
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 

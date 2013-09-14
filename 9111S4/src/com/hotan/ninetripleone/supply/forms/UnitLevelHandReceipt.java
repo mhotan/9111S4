@@ -1,4 +1,4 @@
-package com.hotan.ninetripleone.supply.model;
+package com.hotan.ninetripleone.supply.forms;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -13,6 +13,11 @@ import org.apache.poi.hssf.usermodel.HSSFCell;
 import org.apache.poi.hssf.usermodel.HSSFRow;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+
+import com.hotan.ninetripleone.supply.model.EndItem;
+import com.hotan.ninetripleone.supply.model.EndItemGroup;
+import com.hotan.ninetripleone.supply.model.Operator;
+import com.hotan.ninetripleone.supply.model.Rank;
 
 public class UnitLevelHandReceipt {
 

@@ -4,12 +4,11 @@ import java.util.Comparator;
 import java.util.List;
 
 import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -33,6 +32,8 @@ public class EndItemGroup {
      * String Properties for this specific group.
      */
     private final StringProperty name, lIN, nSN;
+    
+    private StringProperty mos;
     
     /**
      * Constructs EndItemGroup based off predefined properties
@@ -98,6 +99,10 @@ public class EndItemGroup {
     
     public String getNSN() {
         return nSN.get();
+    }
+    
+    public String getMos() {
+        return mosProperty().get();
     }
     
     public ObservableList<EndItem> getItems() {
@@ -174,6 +179,14 @@ public class EndItemGroup {
         FXCollections.sort(mItems, order.getComparator());
     }
     
+    public void setMos(MOS mos) {
+        mosProperty().set(mos.toString());
+    }
+
+    public void setMos(String mos) {
+        mosProperty().set(mos);
+    }
+    
     ///////////////////////////////////////////////////////////////////////////////////
     /////// Properties
     ///////////////////////////////////////////////////////////////////////////////////
@@ -192,6 +205,12 @@ public class EndItemGroup {
     
     public ReadOnlyStringProperty nSNProperty() {
         return this.nSN;
+    }
+    
+    public StringProperty mosProperty() {
+        if (mos == null) 
+            mos = new SimpleStringProperty("");
+        return mos;
     }
     
     ///////////////////////////////////////////////////////////////////////////////////

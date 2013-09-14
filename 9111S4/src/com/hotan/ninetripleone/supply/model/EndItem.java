@@ -18,7 +18,7 @@ import javafx.collections.ObservableList;
 public class EndItem {
     
     private final StringProperty name, lin, nsn;
-    private StringProperty sn, mos, location, cL, pubNum, pubDate;
+    private StringProperty sn, location, cL, pubNum, pubDate;
     private BooleanProperty hasSN;
     
     private final ObservableList<EndItemComponent> mEndItemComps;
@@ -73,7 +73,6 @@ public class EndItem {
         
         updateStringProp(pubDate, item.pubDate);
         updateStringProp(pubNum, item.pubNum);
-        updateStringProp(mos, item.mos);
         updateStringProp(location, item.location);
         updateStringProp(cL, item.cL);
         
@@ -97,14 +96,6 @@ public class EndItem {
     
     public void setPubNum(String pubNum) {
         pubNumProperty().set(pubNum);
-    }
-    
-    public void setMos(MOS mos) {
-        mosProperty().set(mos.toString());
-    }
-
-    public void setMos(String mos) {
-        mosProperty().set(mos);
     }
     
     public void setLocation(String location) {
@@ -156,10 +147,6 @@ public class EndItem {
     
     public String getPubNum() {
         return pubNumProperty().get();
-    }
-    
-    public String getMos() {
-        return mosProperty().get();
     }
     
     public String getLocation() {
@@ -234,11 +221,7 @@ public class EndItem {
         return sn;
     }
     
-    public StringProperty mosProperty() {
-        if (mos == null) 
-            mos = new SimpleStringProperty(null);
-        return mos;
-    }
+
     
     public StringProperty locationProperty() {
         if (location == null)

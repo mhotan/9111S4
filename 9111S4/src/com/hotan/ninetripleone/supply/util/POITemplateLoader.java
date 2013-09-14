@@ -16,7 +16,7 @@ public class POITemplateLoader {
      * Class that has the ability to load xlsx file
      * <br> name must be suffixed with xlsx
      * 
-     * @param name
+     * @param name Name 
      * @return 
      * @throws FileNotFoundException 
      */
@@ -31,7 +31,7 @@ public class POITemplateLoader {
             throw new FileNotFoundException("Unable to find: " + "res/templates/" + name);
 
         // Attempt to construct the workbook via the input stream     
-        return new XSSFWorkbook(new FileInputStream(f));
+        return new XSSFWorkbook(POITemplateLoader.class.getResourceAsStream("/templates/" + name));
     }
 
     private static XSSFWorkbook getKnownXLSXWorkbook(String name) {
@@ -53,7 +53,7 @@ public class POITemplateLoader {
             throw new FileNotFoundException("Unable to find: " + "res/templates/" + name);
 
         // Attempt to construct the workbook via the input stream     
-        return new HSSFWorkbook(new FileInputStream(f));
+        return new HSSFWorkbook(POITemplateLoader.class.getResourceAsStream("/templates/" + name));
     }
 
     private static HSSFWorkbook getKnownXLSWorkbook(String name) {
@@ -66,6 +66,10 @@ public class POITemplateLoader {
     
     public static HSSFWorkbook getXLSCoverPage() {
         return getKnownXLSWorkbook("end_item_coverpage.xls");
+    }
+    
+    public static HSSFWorkbook getXLS2404() {
+        return getKnownXLSWorkbook("DA_2404.xls");
     }
 
 }
